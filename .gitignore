@@ -1,0 +1,19 @@
+# Build output and IDE state
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local expense data
+expenses.json
+
+# Local environment and tools
+.env
+.env.*
+.dotnet/
+
+# OS files
+Thumbs.db
+.DS_Store
