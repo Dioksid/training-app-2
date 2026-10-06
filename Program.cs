@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ExpenseManager
 {
@@ -58,7 +59,7 @@ namespace ExpenseManager
                         break;
 
                     case "4":
-                        ShowTotal();
+                        ShowTotalAmounts();
                         break;
 
                     case "5":
@@ -254,7 +255,7 @@ namespace ExpenseManager
             }
         }
 
-        static void ShowTotal()
+        static decimal ShowTotalAmounts()
         {
             decimal allAmounts = 0;
 
@@ -264,11 +265,76 @@ namespace ExpenseManager
 
             }
             Console.WriteLine($"Загальна cумма всіх витрат: {allAmounts} ");
-          
+            return allAmounts;
+        }
+
+        static int ShowTotalExpenses()
+        {
+            int count = expenses.Count;
+
+            if (count == 0)
+            {
+                Console.WriteLine("Витрат ще немає.");
+                
+            }
+            
+            Console.WriteLine($"Загальна кількість всіх витрат: {count} ");
+            return count;
+            
+        }
+
+        static void ShowAverage()
+        {
+            if (expenses.Count == 0)
+            {
+                Console.WriteLine("Витрат ще немає.");
+                return;
+            }
+
+            decimal total = ShowTotalAmounts();
+            decimal average = total / expenses.Count;
+
+            Console.WriteLine($"Середня витрата: {average}");
         }
 
 
-         static List<Expense> Search(List<Expense> expenses, Func<Expense, bool> condition)
+        static (decimal Min, decimal Max) GetMinMax(List<Expense> expenses)
+        {
+            decimal minimum = expenses[0].Amount;
+            decimal maximum = expenses[0].Amount;
+
+            foreach (Expense expense in expenses)
+            {
+                if (expense.Amount < minimum)
+                {
+                    minimum = expense.Amount;
+                }
+
+                if (expense.Amount > maximum)
+                {
+                    maximum = expense.Amount;
+                }
+            }
+            
+            return (minimum, maximum);
+        }
+
+        static void ShowValueLimits()
+        {
+            if (expenses.Count == 0)
+            {
+                Console.WriteLine("Витрат ще немає.");
+                return;
+            }
+
+            var result = GetMinMax(expenses);
+
+            Console.WriteLine($"Мінімальна сума витрати: {result.Min}");
+            Console.WriteLine($"Максимальна сума витрати: {result.Max}");
+        }
+
+
+        static List<Expense> Search(List<Expense> expenses, Func<Expense, bool> condition)
     
             {
                 return expenses
@@ -304,10 +370,38 @@ namespace ExpenseManager
 
                 }
             }
-        }      
+        }
 
 
-        static void DeleteExpense()
+        static void ShowAllAmountForCategory(List<Expense> expenses)
+        {
+            if (expenses.Count == 0)
+            {
+                Console.WriteLine("Робочих записів ще немає.");
+                return;
+            }
+
+            Dictionary<string, decimal> totalsByCategory = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Expense expense in expenses)
+            {
+                if (!totalsByCategory.ContainsKey(expense.Category))
+                {
+                    totalsByCategory[expense.Category] = 0;
+                }
+
+                totalsByCategory[expense.Category] += expense.Amount;
+            }
+
+            foreach (var pair in totalsByCategory)
+            {
+                Console.WriteLine($"{pair.Key}: {pair.Value} грн.");
+            }
+
+        }
+
+
+            static void DeleteExpense()
         {
             if (expenses.Count == 0)
             {
@@ -342,8 +436,6 @@ namespace ExpenseManager
             {
                 Console.WriteLine($"ID: {expense.Id}| Назва: {expense.Name}| Сума: {expense.Amount}| Категорія: {expense.Category}");
             }
-
-
 
             while (true)
             {
@@ -390,13 +482,12 @@ namespace ExpenseManager
 
         static void ShowStatistics()
         {
-            // TODO:
-            // Кількість витрат
-            // Загальна сума
-            // Середня витрата
-            // Мінімальна витрата
-            // Максимальна витрата
-            // Сума за кожною категорією
+            
+            ShowTotalAmounts();
+            ShowTotalExpenses();
+            ShowAverage();
+            ShowValueLimits();
+            ShowAllAmountForCategory(expenses);
         }
 
         static void SaveExpenses()
